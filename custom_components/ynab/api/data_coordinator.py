@@ -8,11 +8,13 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.const import CONF_API_KEY
 from ynab_sdk import YNAB
 
-from ..const import (
+from custom_components.ynab.const import (
     CONF_CURRENCY_KEY,
     CONF_BUDGET_KEY,
     CONF_CATEGORIES_KEY,
+    CONF_CATEGORIES_ALL_KEY,
     CONF_ACCOUNTS_KEY,
+    CONF_ACCOUNTS_ALL_KEY,
     DEFAULT_API_ENDPOINT,
     DOMAIN
 )
@@ -27,7 +29,9 @@ class YnabDataCoordinator(DataUpdateCoordinator):
         self.api_key = config[CONF_API_KEY]
         self.budget = config[CONF_BUDGET_KEY]
         self.categories = config[CONF_CATEGORIES_KEY]
+        self.categories_all = config[CONF_CATEGORIES_ALL_KEY]
         self.accounts = config[CONF_ACCOUNTS_KEY]
+        self.accounts_all = config[CONF_ACCOUNTS_ALL_KEY]
 
 
     async def _async_update_data(self):
@@ -98,7 +102,7 @@ class YnabDataCoordinator(DataUpdateCoordinator):
         # get accounts
         data[CONF_ACCOUNTS_KEY] = {}
         for account in get_data.accounts:
-            if account.id not in self.accounts:
+            if not self.accounts_all and account.id not in self.accounts:
                 continue
 
             data[CONF_ACCOUNTS_KEY].update([(account.id, {"name": account.name, "balance": account.balance / 1000})])
@@ -150,7 +154,7 @@ class YnabDataCoordinator(DataUpdateCoordinator):
             # get remaining category balances
             data[CONF_CATEGORIES_KEY] = {}
             for category in month.categories:
-                if category.id not in self.categories:
+                if not self.categories_all and category.id not in self.categories:
                     continue
 
                 data[CONF_CATEGORIES_KEY].update(
