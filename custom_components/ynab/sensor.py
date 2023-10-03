@@ -5,7 +5,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from .const import (DOMAIN, CONF_ACCOUNTS_KEY, CONF_ACCOUNTS_ALL_KEY,
                     CONF_BUDGET_KEY, CONF_CATEGORIES_KEY,
                     CONF_CATEGORIES_ALL_KEY, CONF_BUDGET_NAME_KEY)
-from .sensors.balance_sensor import BalanceSensor
+from .sensors.balance_sensor import CategorySensor, AccountSensor
 from .sensors.budget_sensor import BudgetSensor
 from .api.data_coordinator import YnabDataCoordinator
 
@@ -34,20 +34,20 @@ async def async_setup_entry(
 
     categories = []
     if config_entry.data[CONF_CATEGORIES_ALL_KEY]:
-        categories = coordinator.data[CONF_CATEGORIES_KEY].keys()
+        categories = coordinator.data.categories.keys()
     elif CONF_CATEGORIES_KEY in config_entry.data:
         categories = config_entry.data[CONF_CATEGORIES_KEY]
 
     for category in categories:
-        sensors.append(BalanceSensor(coordinator, data_key=CONF_CATEGORIES_KEY, data_id=category, device_info=device_info, budget_name=budget_name))
+        sensors.append(CategorySensor(coordinator, category_id=category, device_info=device_info, budget_name=budget_name))
 
     accounts = []
     if config_entry.data[CONF_ACCOUNTS_ALL_KEY]:
-        accounts = coordinator.data[CONF_ACCOUNTS_KEY].keys()
+        accounts = coordinator.data.accounts.keys()
     elif CONF_ACCOUNTS_KEY in config_entry.data:
         accounts = config_entry.data[CONF_ACCOUNTS_KEY]
 
     for account in accounts:
-        sensors.append(BalanceSensor(coordinator, data_key=CONF_ACCOUNTS_KEY, data_id=account, device_info=device_info, budget_name=budget_name))
+        sensors.append(AccountSensor(coordinator, account_id=account, device_info=device_info, budget_name=budget_name))
 
     async_add_entities(sensors, update_before_add=True)
